@@ -37,8 +37,8 @@ type BlockDiffInfo struct {
 }
 
 const allowedFutureBlockTime = 30 * time.Second
-const KEY_PART_TOTAL_DIFFICULTY = "totalDifficulty"
 
+//const KEY_PART_TOTAL_DIFFICULTY = "totalDifficulty"
 //const KEY_PART_BLOCK_INFO = "blockInfo"
 
 func putBlockHeader(native *native.NativeService, blockHeader types.BlockHeaderAndBlockInfo, chainID uint64) error {
@@ -94,24 +94,24 @@ func putBlockHeader(native *native.NativeService, blockHeader types.BlockHeaderA
 // 	return nil
 // }
 
-func updateTotalDifficulty(native *native.NativeService, difficulty []byte) {
-	contract := utils.HeaderSyncContractAddress
-	native.GetCacheDB().Put(utils.ConcatKey(contract, []byte(KEY_PART_TOTAL_DIFFICULTY)), states.GenRawStorageItem(difficulty))
-}
+// func updateTotalDifficulty(native *native.NativeService, difficulty []byte) {
+// 	contract := utils.HeaderSyncContractAddress
+// 	native.GetCacheDB().Put(utils.ConcatKey(contract, []byte(KEY_PART_TOTAL_DIFFICULTY)), states.GenRawStorageItem(difficulty))
+// }
 
-func getTotalDifficulty(native *native.NativeService) (*uint256.Int, error) {
-	contract := utils.HeaderSyncContractAddress
-	difficulty := new(uint256.Int)
-	rawBytes, err := native.GetCacheDB().Get(utils.ConcatKey(contract, []byte(KEY_PART_TOTAL_DIFFICULTY)))
-	if err != nil {
-		return difficulty, err
-	}
-	difficultyBytes, err := states.GetValueFromRawStorageItem(rawBytes)
-	if err != nil {
-		return difficulty, err
-	}
-	return difficulty.SetBytes(difficultyBytes), nil
-}
+// func getTotalDifficulty(native *native.NativeService) (*uint256.Int, error) {
+// 	contract := utils.HeaderSyncContractAddress
+// 	difficulty := new(uint256.Int)
+// 	rawBytes, err := native.GetCacheDB().Get(utils.ConcatKey(contract, []byte(KEY_PART_TOTAL_DIFFICULTY)))
+// 	if err != nil {
+// 		return difficulty, err
+// 	}
+// 	difficultyBytes, err := states.GetValueFromRawStorageItem(rawBytes)
+// 	if err != nil {
+// 		return difficulty, err
+// 	}
+// 	return difficulty.SetBytes(difficultyBytes), nil
+// }
 
 func putGenesisBlockHeader(native *native.NativeService, blockHeader types.BlockHeaderAndBlockInfo, chainID uint64) error {
 	contract := utils.HeaderSyncContractAddress
@@ -268,14 +268,14 @@ func ReStructChain(native *native.NativeService, current, new *types.BlockHeader
 			return errors.WithStack(err)
 		}
 		newHashes = append(newHashes, *newHash)
-		child := new // save for verifying
+		//child := new
 		new, err = GetHeaderByHash(native, new.BlockHeader.ParentHash, chainID)
 		if err != nil {
 			return errors.Errorf("ReStructChain GetHeaderByHash hash:%x error:%s", new.BlockHeader.ParentHash, err)
 		}
-		if err := verifyTotalDifficulty(child, new); err != nil {
-			return err
-		}
+		// if err := verifyTotalDifficulty(child, new); err != nil {
+		// 	return err
+		// }
 		ti--
 	}
 	for !bytes.Equal(current.BlockHeader.ParentHash, new.BlockHeader.ParentHash) {
@@ -284,14 +284,14 @@ func ReStructChain(native *native.NativeService, current, new *types.BlockHeader
 			return errors.WithStack(err)
 		}
 		newHashes = append(newHashes, *newHash)
-		child := new // save for verifying
+		//child := new
 		new, err = GetHeaderByHash(native, new.BlockHeader.ParentHash, chainID)
 		if err != nil {
 			return errors.Errorf("ReStructChain GetHeaderByHash hash:%x  error:%s", new.BlockHeader.ParentHash, err)
 		}
-		if err := verifyTotalDifficulty(child, new); err != nil {
-			return err
-		}
+		// if err := verifyTotalDifficulty(child, new); err != nil {
+		// 	return err
+		// }
 		ti--
 		si--
 		current, err = GetHeaderByHeight(native, si, chainID)
@@ -305,7 +305,11 @@ func ReStructChain(native *native.NativeService, current, new *types.BlockHeader
 	}
 	newHashes = append(newHashes, *newHash)
 	for i := len(newHashes) - 1; i >= 0; i-- {
-		appendHeader2Main(native, ti, newHashes[i], chainID)
+		err := appendHeader2Main(native, ti, newHashes[i], chainID)
+		_ = err //todo ignore error?
+		// if err != nil {
+		// 	return err
+		// }
 		ti++
 	}
 	return nil
