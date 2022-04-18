@@ -108,21 +108,21 @@ func hexToAccountAddress(addr string) (*types.AccountAddress, error) {
 	return &addressArray, nil
 }
 
-func (tag *StructTag) toTypesStructTag() (*types.TypeTag__Struct, error) {
-	address, err := hexToAccountAddress(tag.Address)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	structTag := types.StructTag{
-		Address:    *address,
-		Module:     types.Identifier(tag.Module),
-		Name:       types.Identifier(tag.Name),
-		TypeParams: nil, //todo parse typetag[]
-	}
-	return &types.TypeTag__Struct{
-		Value: structTag,
-	}, nil
-}
+// func (tag *StructTag) toTypesStructTag() (*types.TypeTag__Struct, error) {
+// 	address, err := hexToAccountAddress(tag.Address)
+// 	if err != nil {
+// 		return nil, errors.WithStack(err)
+// 	}
+// 	structTag := types.StructTag{
+// 		Address:    *address,
+// 		Module:     types.Identifier(tag.Module),
+// 		Name:       types.Identifier(tag.Name),
+// 		TypeParams: nil, //todo parse typetag[]
+// 	}
+// 	return &types.TypeTag__Struct{
+// 		Value: structTag,
+// 	}, nil
+// }
 
 func toTypesContractEvent(event *types.ContractEventV0) *types.ContractEvent__V0 {
 	return &types.ContractEvent__V0{
