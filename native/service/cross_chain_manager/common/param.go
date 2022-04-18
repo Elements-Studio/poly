@@ -18,8 +18,19 @@ package common
 
 import (
 	"fmt"
+
+	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/polynetwork/poly/common"
 	"github.com/polynetwork/poly/native"
+)
+
+const (
+	IMPORT_OUTER_TRANSFER_NAME = "ImportOuterTransfer"
+	MULTI_SIGN                 = "MultiSign"
+	BLACK_CHAIN                = "BlackChain"
+	WHITE_CHAIN                = "WhiteChain"
+
+	BLACKED_CHAIN = "BlackedChain"
 )
 
 var (
@@ -105,6 +116,33 @@ func (this *EntranceParam) Deserialization(source *common.ZeroCopySource) error 
 	this.Extra = extra
 	this.HeaderOrCrossChainMsg = headerOrCrossChainMsg
 	return nil
+}
+
+type MakeTxParamWithSender struct {
+	Sender ethcommon.Address
+	MakeTxParam
+}
+
+// this method is only used in test
+func (this *MakeTxParamWithSender) Serialization() (data []byte, err error) {
+	sink := common.NewZeroCopySink(nil)
+	sink.WriteAddress(common.Address(this.Sender))
+	this.MakeTxParam.Serialization(sink)
+	data = sink.Bytes()
+	return
+}
+
+func (this *MakeTxParamWithSender) Deserialization(data []byte) (err error) {
+
+	source := common.NewZeroCopySource(data)
+
+	addr, eof := source.NextAddress()
+	if eof {
+		err = fmt.Errorf("MakeTxParamWithSender NextAddress fail")
+		return
+	}
+	this.Sender = ethcommon.Address(addr)
+	return this.MakeTxParam.Deserialization(source)
 }
 
 type MakeTxParam struct {
@@ -257,3 +295,23 @@ func (this *ToMerkleValue) Deserialization(source *common.ZeroCopySource) error 
 	this.MakeTxParam = makeTxParam
 	return nil
 }
+
+
+type BlackChainParam struct {
+	ChainID uint64
+}
+
+func (this *BlackChainParam) Serialization(sink *common.ZeroCopySink) {
+	sink.WriteVarUint(this.ChainID)
+}
+
+func (this *BlackChainParam) Deserialization(source *common.ZeroCopySource) error {
+	chainID, eof := source.NextVarUint()
+	if eof {
+		return fmt.Errorf("BlackChainParam deserialize chainID error")
+	}
+
+	this.ChainID = chainID
+	return nil
+}
+

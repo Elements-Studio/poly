@@ -15,27 +15,37 @@
  * along with The poly network .  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cross_chain_manager
+package replenish
 
 import (
 	"fmt"
+	"github.com/polynetwork/poly/native/event"
+
 	"github.com/polynetwork/poly/common"
+	"github.com/polynetwork/poly/native"
+	"github.com/polynetwork/poly/native/service/utils"
 )
 
-type BlackChainParam struct {
-	ChainID uint64
+const (
+	//function name
+	REPLENISH_TX = "replenishTx"
+)
+
+//Register methods
+func RegisterReplenishContract(native *native.NativeService) {
+	native.Register(REPLENISH_TX, ReplenishTx)
 }
 
-func (this *BlackChainParam) Serialization(sink *common.ZeroCopySink) {
-	sink.WriteVarUint(this.ChainID)
-}
-
-func (this *BlackChainParam) Deserialization(source *common.ZeroCopySource) error {
-	chainID, eof := source.NextVarUint()
-	if eof {
-		return fmt.Errorf("BlackChainParam deserialize chainID error")
+func ReplenishTx(native *native.NativeService) ([]byte, error) {
+	params := new(ReplenishTxParam)
+	if err := params.Deserialization(common.NewZeroCopySource(native.GetInput())); err != nil {
+		return utils.BYTE_FALSE, fmt.Errorf("ReplenishTx, contract params deserialize error: %v", err)
 	}
 
-	this.ChainID = chainID
-	return nil
+	native.AddNotify(
+		&event.NotifyEventInfo{
+			ContractAddress: utils.ReplenishContractAddress,
+			States:          []interface{}{"ReplenishTx", params.TxHashes, params.ChainId},
+		})
+	return utils.BYTE_TRUE, nil
 }
