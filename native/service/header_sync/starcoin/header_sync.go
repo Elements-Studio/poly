@@ -299,7 +299,7 @@ func verifyHeaderDifficulty(expected *big.Int, header *types.BlockHeader) error 
 	}
 	// //////////////////////////////////////////////////////////////////////////////////////////////
 	chainID := config.GetChainIdByNetId(config.DefConfig.P2PNode.NetworkId)
-	_ = chainID
+	//_ = chainID
 	var ok bool
 	var useArgonConsensus = header.Number >= 5061625 && config.TESTNET_CHAIN_ID == chainID
 	if useArgonConsensus {
